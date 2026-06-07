@@ -110,6 +110,52 @@ export async function listarSatelitesDaOcorrencia(id: number): Promise<Ocorrenci
   return (dtos ?? []).map((s) => mapOcorrenciaSatelite(id, s));
 }
 
+// ─── Edição completa de ocorrência ───────────────────────────────────────────
+export async function editarOcorrencia(
+  id: number,
+  dados: OcorrenciaFormData,
+  statusAtual: OcorrenciaStatus,
+): Promise<Ocorrencia> {
+  const [regiao, tipos] = await Promise.all([
+    buscarRegiao(dados.regiaoId),
+    listarTiposDesastre(),
+  ]);
+  const tipo = tipos.find((t) => t.id === dados.tipoDesastreId);
+  if (!tipo) throw new Error('Tipo de desastre inválido.');
+
+  const payload: CriarOcorrenciaPayload = {
+    dataInicio: dados.dataInicio,
+    dataFim: dados.dataFim ?? null,
+    descricao: dados.descricao,
+    status: statusAtual,
+    idRegiao: dados.regiaoId,
+    idTipo: dados.tipoDesastreId,
+    nomeRegiao: regiao.nome,
+    estadoRegiao: regiao.estado,
+    nomeTipo: tipo.nome,
+    nivelRisco: '',
+  };
+
+  const dto = await apiFetch<OcorrenciaDTO>(`/ocorrencias/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return mapOcorrencia(dto);
+}
+
+// ─── Vínculo ocorrência ↔ satélite ────────────────────────────────────────────
+export async function vincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {
+  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, {
+    method: 'POST',
+  });
+}
+
+export async function desvincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {
+  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, {
+    method: 'DELETE',
+  });
+}
+
 // ─── Estatísticas para o Dashboard (computadas client-side) ──────────────────
 export async function obterDashboardStats(): Promise<DashboardStats> {
   const dtos = await apiFetch<OcorrenciaDTO[]>('/ocorrencias');
