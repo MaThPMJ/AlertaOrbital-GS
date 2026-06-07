@@ -11,35 +11,17 @@ import type { OcorrenciaDTO, SateliteDTO, CriarOcorrenciaPayload } from '../api/
 import { mapOcorrencia, mapOcorrenciaSatelite } from '../api/mappers';
 import { buscarRegiao } from './regiaoService';
 import { listarTiposDesastre } from './tipoDesastreService';
+import { mockOcorrencias, mockOcorrenciaSatelites } from './mockData';
+import { setApiStatus } from '../lib/apiStatus';
 
-// ─── Listagem com filtros (filtros sem suporte nativo na API → client-side) ───
-export async function listarOcorrencias(filtros?: OcorrenciaFiltros): Promise<Ocorrencia[]> {
-  let dtos: OcorrenciaDTO[];
-
-  // Aproveita rotas filtradas do backend quando possível
-  if (filtros?.status) {
-    dtos = await apiFetch<OcorrenciaDTO[]>(`/ocorrencias/status/${filtros.status}`);
-  } else if (filtros?.regiaoId) {
-    dtos = await apiFetch<OcorrenciaDTO[]>(`/ocorrencias/regiao/${filtros.regiaoId}`);
-  } else {
-    dtos = await apiFetch<OcorrenciaDTO[]>('/ocorrencias');
-  }
-
-  let resultado = (dtos ?? []).map(mapOcorrencia);
-
-  // Filtros adicionais aplicados no cliente
-  if (filtros?.tipoDesastreId) {
-    resultado = resultado.filter((o) => o.tipoDesastre.id === Number(filtros.tipoDesastreId));
-  }
-  if (filtros?.regiaoId && !filtros.status) {
-    resultado = resultado.filter((o) => o.regiao.id === Number(filtros.regiaoId));
-  }
-  if (filtros?.dataInicioDe) {
-    resultado = resultado.filter((o) => o.dataInicio >= filtros.dataInicioDe!);
-  }
-  if (filtros?.dataInicioAte) {
-    resultado = resultado.filter((o) => o.dataInicio <= filtros.dataInicioAte!);
-  }
+// ─── Filtros client-side compartilhados ──────────────────────────────────────
+function aplicarFiltros(lista: Ocorrencia[], filtros?: OcorrenciaFiltros): Ocorrencia[] {
+  let resultado = lista;
+  if (filtros?.status) resultado = resultado.filter((o) => o.status === filtros.status);
+  if (filtros?.regiaoId) resultado = resultado.filter((o) => o.regiao.id === Number(filtros.regiaoId));
+  if (filtros?.tipoDesastreId) resultado = resultado.filter((o) => o.tipoDesastre.id === Number(filtros.tipoDesastreId));
+  if (filtros?.dataInicioDe) resultado = resultado.filter((o) => o.dataInicio >= filtros.dataInicioDe!);
+  if (filtros?.dataInicioAte) resultado = resultado.filter((o) => o.dataInicio <= filtros.dataInicioAte!);
   if (filtros?.busca) {
     const termo = filtros.busca.toLowerCase();
     resultado = resultado.filter(
@@ -50,25 +32,59 @@ export async function listarOcorrencias(filtros?: OcorrenciaFiltros): Promise<Oc
         o.regiao.estado.toLowerCase().includes(termo),
     );
   }
+  return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
+}
 
-  return resultado.sort(
-    (a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime(),
-  );
+// ─── Listagem com filtros ─────────────────────────────────────────────────────
+export async function listarOcorrencias(filtros?: OcorrenciaFiltros): Promise<Ocorrencia[]> {
+  try {
+    let dtos: OcorrenciaDTO[];
+    if (filtros?.status) {
+      dtos = await apiFetch<OcorrenciaDTO[]>(`/ocorrencias/status/${filtros.status}`);
+    } else if (filtros?.regiaoId) {
+      dtos = await apiFetch<OcorrenciaDTO[]>(`/ocorrencias/regiao/${filtros.regiaoId}`);
+    } else {
+      dtos = await apiFetch<OcorrenciaDTO[]>('/ocorrencias');
+    }
+
+    let resultado = (dtos ?? []).map(mapOcorrencia);
+    if (filtros?.tipoDesastreId) resultado = resultado.filter((o) => o.tipoDesastre.id === Number(filtros.tipoDesastreId));
+    if (filtros?.regiaoId && !filtros.status) resultado = resultado.filter((o) => o.regiao.id === Number(filtros.regiaoId));
+    if (filtros?.dataInicioDe) resultado = resultado.filter((o) => o.dataInicio >= filtros.dataInicioDe!);
+    if (filtros?.dataInicioAte) resultado = resultado.filter((o) => o.dataInicio <= filtros.dataInicioAte!);
+    if (filtros?.busca) {
+      const termo = filtros.busca.toLowerCase();
+      resultado = resultado.filter(
+        (o) =>
+          o.descricao.toLowerCase().includes(termo) ||
+          o.tipoDesastre.nome.toLowerCase().includes(termo) ||
+          o.regiao.nome.toLowerCase().includes(termo) ||
+          o.regiao.estado.toLowerCase().includes(termo),
+      );
+    }
+    return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
+  } catch {
+    setApiStatus('mock');
+    return aplicarFiltros([...mockOcorrencias], filtros);
+  }
 }
 
 // ─── Busca por ID ──────────────────────────────────────────────────────────────
 export async function buscarOcorrencia(id: number): Promise<Ocorrencia> {
-  const dto = await apiFetch<OcorrenciaDTO>(`/ocorrencias/${id}`);
-  return mapOcorrencia(dto);
+  try {
+    const dto = await apiFetch<OcorrenciaDTO>(`/ocorrencias/${id}`);
+    return mapOcorrencia(dto);
+  } catch {
+    setApiStatus('mock');
+    const found = mockOcorrencias.find((o) => o.id === id);
+    if (found) return found;
+    throw new Error(`Ocorrência ${id} não encontrada`);
+  }
 }
 
 // ─── Cadastro ──────────────────────────────────────────────────────────────────
 export async function cadastrarOcorrencia(dados: OcorrenciaFormData): Promise<Ocorrencia> {
-  // Busca nomes para completar o payload exigido pela API
-  const [regiao, tipos] = await Promise.all([
-    buscarRegiao(dados.regiaoId),
-    listarTiposDesastre(),
-  ]);
+  const [regiao, tipos] = await Promise.all([buscarRegiao(dados.regiaoId), listarTiposDesastre()]);
   const tipo = tipos.find((t) => t.id === dados.tipoDesastreId);
   if (!tipo) throw new Error('Tipo de desastre inválido.');
 
@@ -93,21 +109,12 @@ export async function cadastrarOcorrencia(dados: OcorrenciaFormData): Promise<Oc
 }
 
 // ─── Atualização de status ────────────────────────────────────────────────────
-export async function atualizarStatus(
-  id: number,
-  novoStatus: OcorrenciaStatus,
-): Promise<Ocorrencia> {
+export async function atualizarStatus(id: number, novoStatus: OcorrenciaStatus): Promise<Ocorrencia> {
   const dto = await apiFetch<OcorrenciaDTO>(`/ocorrencias/${id}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status: novoStatus }),
   });
   return mapOcorrencia(dto);
-}
-
-// ─── Satélites vinculados à ocorrência ────────────────────────────────────────
-export async function listarSatelitesDaOcorrencia(id: number): Promise<OcorrenciaSatelite[]> {
-  const dtos = await apiFetch<SateliteDTO[]>(`/ocorrencias/${id}/satelites`);
-  return (dtos ?? []).map((s) => mapOcorrenciaSatelite(id, s));
 }
 
 // ─── Edição completa de ocorrência ───────────────────────────────────────────
@@ -116,10 +123,7 @@ export async function editarOcorrencia(
   dados: OcorrenciaFormData,
   statusAtual: OcorrenciaStatus,
 ): Promise<Ocorrencia> {
-  const [regiao, tipos] = await Promise.all([
-    buscarRegiao(dados.regiaoId),
-    listarTiposDesastre(),
-  ]);
+  const [regiao, tipos] = await Promise.all([buscarRegiao(dados.regiaoId), listarTiposDesastre()]);
   const tipo = tipos.find((t) => t.id === dados.tipoDesastreId);
   if (!tipo) throw new Error('Tipo de desastre inválido.');
 
@@ -143,23 +147,29 @@ export async function editarOcorrencia(
   return mapOcorrencia(dto);
 }
 
+// ─── Satélites vinculados à ocorrência ────────────────────────────────────────
+export async function listarSatelitesDaOcorrencia(id: number): Promise<OcorrenciaSatelite[]> {
+  try {
+    const dtos = await apiFetch<SateliteDTO[]>(`/ocorrencias/${id}/satelites`);
+    return (dtos ?? []).map((s) => mapOcorrenciaSatelite(id, s));
+  } catch {
+    setApiStatus('mock');
+    return mockOcorrenciaSatelites.filter((os) => os.ocorrenciaId === id);
+  }
+}
+
 // ─── Vínculo ocorrência ↔ satélite ────────────────────────────────────────────
 export async function vincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {
-  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, {
-    method: 'POST',
-  });
+  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, { method: 'POST' });
 }
 
 export async function desvincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {
-  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, {
-    method: 'DELETE',
-  });
+  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, { method: 'DELETE' });
 }
 
 // ─── Estatísticas para o Dashboard (computadas client-side) ──────────────────
 export async function obterDashboardStats(): Promise<DashboardStats> {
-  const dtos = await apiFetch<OcorrenciaDTO[]>('/ocorrencias');
-  const ocorrencias = (dtos ?? []).map(mapOcorrencia);
+  const ocorrencias = await listarOcorrencias();
 
   const tipoMap = new Map<string, number>();
   const regiaoMap = new Map<string, number>();
@@ -182,4 +192,3 @@ export async function obterDashboardStats(): Promise<DashboardStats> {
     ocorrenciasRecentes: recentes,
   };
 }
-
