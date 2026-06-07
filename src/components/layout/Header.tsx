@@ -1,8 +1,12 @@
+import { useApiStatus } from '../../lib/apiStatus';
+
 interface HeaderProps {
   onMenuToggle: () => void;
 }
 
 export function Header({ onMenuToggle }: HeaderProps) {
+  const apiStatus = useApiStatus();
+
   const now = new Date().toLocaleString('pt-BR', {
     weekday: 'short',
     day: '2-digit',
@@ -36,10 +40,20 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
       {/* Status indicator */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden />
-          <span className="text-xs font-medium text-emerald-400">Sistema operacional</span>
-        </div>
+        {apiStatus === 'live' ? (
+          <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden />
+            <span className="text-xs font-medium text-emerald-400">API ao vivo</span>
+          </div>
+        ) : (
+          <div
+            title="A API está indisponível. Os dados exibidos são simulados (mock)."
+            className="flex cursor-help items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden />
+            <span className="text-xs font-medium text-amber-400">Dados simulados</span>
+          </div>
+        )}
 
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-300">
           OP

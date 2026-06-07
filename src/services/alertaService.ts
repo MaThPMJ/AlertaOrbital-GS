@@ -1,16 +1,38 @@
 import type { Alerta } from '../types';
 import { apiFetch } from '../api/client';
-import type { AlertaDTO } from '../api/types';
+import type { AlertaDTO, CriarAlertaPayload } from '../api/types';
 import { mapAlerta } from '../api/mappers';
+import { mockAlertas } from './mockData';
+import { setApiStatus } from '../lib/apiStatus';
 
 export async function listarAlertasDaOcorrencia(ocorrenciaId: number): Promise<Alerta[]> {
-  const dtos = await apiFetch<AlertaDTO[]>(`/alertas/ocorrencia/${ocorrenciaId}`);
-  return (dtos ?? []).map(mapAlerta);
+  try {
+    const dtos = await apiFetch<AlertaDTO[]>(`/alertas/ocorrencia/${ocorrenciaId}`);
+    return (dtos ?? []).map(mapAlerta);
+  } catch {
+    setApiStatus('mock');
+    return mockAlertas.filter((a) => a.ocorrenciaId === ocorrenciaId);
+  }
 }
 
 export async function listarTodosAlertas(): Promise<Alerta[]> {
-  const dtos = await apiFetch<AlertaDTO[]>('/alertas');
-  return (dtos ?? [])
-    .map(mapAlerta)
-    .sort((a, b) => new Date(b.emitidoEm).getTime() - new Date(a.emitidoEm).getTime());
+  try {
+    const dtos = await apiFetch<AlertaDTO[]>('/alertas');
+    return (dtos ?? [])
+      .map(mapAlerta)
+      .sort((a, b) => new Date(b.emitidoEm).getTime() - new Date(a.emitidoEm).getTime());
+  } catch {
+    setApiStatus('mock');
+    return [...mockAlertas].sort(
+      (a, b) => new Date(b.emitidoEm).getTime() - new Date(a.emitidoEm).getTime(),
+    );
+  }
+}
+
+export async function criarAlerta(payload: CriarAlertaPayload): Promise<Alerta> {
+  const dto = await apiFetch<AlertaDTO>('/alertas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return mapAlerta(dto);
 }

@@ -4,6 +4,7 @@ import type {
   TipoDesastreDTO,
   SateliteDTO,
   AlertaDTO,
+  UsuarioDTO,
 } from './types';
 import type {
   Ocorrencia,
@@ -14,6 +15,7 @@ import type {
   Alerta,
   AlertaSeveridade,
   OcorrenciaSatelite,
+  Usuario,
 } from '../types';
 
 // ─── Normalização de strings da API ──────────────────────────────────────────
@@ -133,6 +135,25 @@ export function mapAlerta(dto: AlertaDTO): Alerta {
     severidade: nivelRiscoParaSeveridade(dto.statusOcorrencia),
     emitidoEm: dto.dataEmissao ?? new Date().toISOString(),
     emitidoPor: dto.nomeUsuario ?? 'Sistema',
+  };
+}
+
+function cargoPapel(cargo: string): Usuario['papel'] {
+  const c = (cargo ?? '').toLowerCase();
+  if (c.includes('coordenador') || c.includes('diretor') || c.includes('gerente') || c.includes('chefe'))
+    return 'Administrador';
+  if (c.includes('analista') || c.includes('pesquisador') || c.includes('cientista'))
+    return 'Analista';
+  return 'Operador';
+}
+
+export function mapUsuario(dto: UsuarioDTO): Usuario {
+  return {
+    id: dto.idUsuario,
+    nome: dto.nome,
+    email: dto.email,
+    papel: cargoPapel(dto.cargo),
+    agencia: dto.cargo,
   };
 }
 
