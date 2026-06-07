@@ -4,8 +4,11 @@ import {
   listarOcorrencias,
   buscarOcorrencia,
   cadastrarOcorrencia,
+  editarOcorrencia,
   atualizarStatus,
   listarSatelitesDaOcorrencia,
+  vincularSatelite,
+  desvincularSatelite,
   obterDashboardStats,
 } from '../services/ocorrenciaService';
 
@@ -53,6 +56,48 @@ export function useCadastrarOcorrencia() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ocorrencias'] });
       qc.invalidateQueries({ queryKey: QUERY_KEYS.dashboard() });
+    },
+  });
+}
+
+export function useEditarOcorrencia() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      dados,
+      statusAtual,
+    }: {
+      id: number;
+      dados: OcorrenciaFormData;
+      statusAtual: OcorrenciaStatus;
+    }) => editarOcorrencia(id, dados, statusAtual),
+    onSuccess: (atualizada) => {
+      qc.invalidateQueries({ queryKey: ['ocorrencias'] });
+      qc.setQueryData(QUERY_KEYS.ocorrencia(atualizada.id), atualizada);
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.dashboard() });
+    },
+  });
+}
+
+export function useVincularSatelite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ocorrenciaId, sateliteId }: { ocorrenciaId: number; sateliteId: number }) =>
+      vincularSatelite(ocorrenciaId, sateliteId),
+    onSuccess: (_, { ocorrenciaId }) => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.satelites(ocorrenciaId) });
+    },
+  });
+}
+
+export function useDesvincularSatelite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ocorrenciaId, sateliteId }: { ocorrenciaId: number; sateliteId: number }) =>
+      desvincularSatelite(ocorrenciaId, sateliteId),
+    onSuccess: (_, { ocorrenciaId }) => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.satelites(ocorrenciaId) });
     },
   });
 }

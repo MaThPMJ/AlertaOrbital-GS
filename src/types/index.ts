@@ -85,6 +85,7 @@ export interface OcorrenciaFormData {
   tipoDesastreId: number;
   regiaoId: number;
   dataInicio: string;
+  dataFim?: string;
   descricao: string;
   areaAfetadaKm2?: number;
   populacaoAfetada?: number;

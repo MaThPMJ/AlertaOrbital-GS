@@ -71,3 +71,9 @@ export interface CriarOcorrenciaPayload {
 export interface AtualizarStatusPayload {
   status: string;
 }
+
+export interface CriarAlertaPayload {
+  mensagem: string;
+  idOcorrencia: number;
+  idUsuario: number;
+}
