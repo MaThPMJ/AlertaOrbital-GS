@@ -9,6 +9,9 @@ import { OcorrenciaFormPage } from './pages/OcorrenciaFormPage';
 import { SatelitesPage } from './pages/SatelitesPage';
 import { RelatoriosPage } from './pages/RelatoriosPage';
 import { UsuariosPage } from './pages/UsuariosPage';
+import { IntegrantesPage } from './pages/IntegrantesPage';
+import { SobrePage } from './pages/SobrePage';
+import { FAQPage } from './pages/FAQPage';
 
 export default function App() {
   return (
@@ -26,6 +29,9 @@ export default function App() {
             <Route path="satelites" element={<SatelitesPage />} />
             <Route path="relatorios" element={<RelatoriosPage />} />
             <Route path="usuarios" element={<UsuariosPage />} />
+            <Route path="integrantes" element={<IntegrantesPage />} />
+            <Route path="sobre" element={<SobrePage />} />
+            <Route path="faq" element={<FAQPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
