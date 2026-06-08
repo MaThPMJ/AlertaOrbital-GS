@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useOcorrencias';
+import { useTodosAlertas } from '../hooks/useAlertas';
 import { StatCard } from '../components/ui/StatCard';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { SeveridadeBadge } from '../components/ui/SeveridadeBadge';
 import { PageLoading } from '../components/ui/LoadingSpinner';
 import { ErrorState } from '../components/ui/ErrorState';
 import { PageHeader } from '../components/layout/PageHeader';
-import { formatarData, TIPO_ICONE } from '../lib/utils';
+import { formatarData, formatarDataHora, TIPO_ICONE } from '../lib/utils';
 
 export function DashboardPage() {
   const { data: stats, isLoading, isError, refetch } = useDashboardStats();
+  const { data: alertas = [] } = useTodosAlertas();
 
   if (isLoading) return <PageLoading />;
   if (isError || !stats) return <ErrorState onRetry={() => refetch()} />;
@@ -62,6 +65,21 @@ export function DashboardPage() {
         />
       </div>
 
+      {/* Banner de detecções ao vivo */}
+      <Link
+        to="/deteccoes"
+        className="flex items-center gap-4 rounded-xl border border-blue-500/20 bg-blue-600/10 px-5 py-4 transition hover:border-blue-500/40 hover:bg-blue-600/15"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-xl animate-pulse">
+          🛰️
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-blue-300">Detecções via Satélite ao Vivo</p>
+          <p className="text-xs text-slate-500">NASA EONET + USGS — eventos naturais detectados automaticamente no Brasil</p>
+        </div>
+        <span className="shrink-0 text-xs text-blue-400">Ver detecções →</span>
+      </Link>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Ocorrências recentes */}
         <Card className="lg:col-span-2">
@@ -101,8 +119,33 @@ export function DashboardPage() {
           </div>
         </Card>
 
-        {/* Distribuições */}
+        {/* Alertas recentes + Distribuições */}
         <div className="flex flex-col gap-4">
+          {/* Alertas recentes */}
+          {alertas.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-slate-200">Alertas Recentes</h2>
+                  <Link to="/alertas" className="text-xs text-blue-400 hover:text-blue-300">
+                    Ver todos →
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {alertas.slice(0, 4).map((a) => (
+                  <div key={a.id} className="flex items-start gap-2">
+                    <SeveridadeBadge severidade={a.severidade} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs text-slate-300">{a.titulo}</p>
+                      <p className="text-xs text-slate-600">{formatarDataHora(a.emitidoEm)}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <h2 className="text-sm font-semibold text-slate-200">Por Tipo de Desastre</h2>

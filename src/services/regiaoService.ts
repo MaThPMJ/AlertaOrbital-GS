@@ -1,6 +1,6 @@
 import type { Regiao } from '../types';
 import { apiFetch } from '../api/client';
-import type { RegiaoDTO } from '../api/types';
+import type { RegiaoDTO, CriarRegiaoPayload } from '../api/types';
 import { mapRegiao } from '../api/mappers';
 import { mockRegioes } from './mockData';
 import { setApiStatus } from '../lib/apiStatus';
@@ -13,6 +13,14 @@ export async function listarRegioes(): Promise<Regiao[]> {
     setApiStatus('mock');
     return mockRegioes;
   }
+}
+
+export async function criarRegiao(payload: CriarRegiaoPayload): Promise<Regiao> {
+  const dto = await apiFetch<RegiaoDTO>('/regioes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return mapRegiao(dto);
 }
 
 export async function buscarRegiao(id: number): Promise<Regiao> {

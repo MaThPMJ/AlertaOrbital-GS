@@ -77,3 +77,15 @@ export interface CriarAlertaPayload {
   idOcorrencia: number;
   idUsuario: number;
 }
+
+export interface CriarTipoDesastrePayload {
+  nome: string;
+  descricao: string;
+  nivelRisco: string;
+}
+
+export interface CriarRegiaoPayload {
+  nome: string;
+  estado: string;
+  pais: string;
+}

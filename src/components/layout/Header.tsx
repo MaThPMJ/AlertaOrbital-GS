@@ -1,4 +1,5 @@
 import { useApiStatus } from '../../lib/apiStatus';
+import { useAuth, getIniciais } from '../../contexts/AuthContext';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -6,6 +7,7 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const apiStatus = useApiStatus();
+  const { user } = useAuth();
 
   const now = new Date().toLocaleString('pt-BR', {
     weekday: 'short',
@@ -18,7 +20,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-700/60 bg-slate-900/80 px-4 backdrop-blur-sm lg:px-6">
-      {/* Mobile menu button */}
       <button
         type="button"
         onClick={onMenuToggle}
@@ -30,7 +31,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
         </svg>
       </button>
 
-      {/* Timestamp */}
       <div className="hidden items-center gap-2 text-xs text-slate-500 lg:flex">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-3.5 w-3.5" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -38,7 +38,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
         {now}
       </div>
 
-      {/* Status indicator */}
       <div className="flex items-center gap-3">
         {apiStatus === 'live' ? (
           <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1">
@@ -55,9 +54,21 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </div>
         )}
 
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-300">
-          OP
-        </div>
+        {user ? (
+          <div className="flex items-center gap-2">
+            <div
+              title={user.nome}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600/30 text-xs font-bold text-blue-300"
+            >
+              {getIniciais(user.nome)}
+            </div>
+            <span className="hidden text-xs text-slate-400 lg:block">{user.papel}</span>
+          </div>
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-300">
+            --
+          </div>
+        )}
       </div>
     </header>
   );

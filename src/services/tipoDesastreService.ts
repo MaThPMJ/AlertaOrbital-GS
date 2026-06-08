@@ -1,6 +1,6 @@
 import type { TipoDesastre } from '../types';
 import { apiFetch } from '../api/client';
-import type { TipoDesastreDTO } from '../api/types';
+import type { TipoDesastreDTO, CriarTipoDesastrePayload } from '../api/types';
 import { mapTipoDesastre } from '../api/mappers';
 import { mockTiposDesastre } from './mockData';
 import { setApiStatus } from '../lib/apiStatus';
@@ -13,4 +13,12 @@ export async function listarTiposDesastre(): Promise<TipoDesastre[]> {
     setApiStatus('mock');
     return mockTiposDesastre;
   }
+}
+
+export async function criarTipoDesastre(payload: CriarTipoDesastrePayload): Promise<TipoDesastre> {
+  const dto = await apiFetch<TipoDesastreDTO>('/tipos-desastre', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return mapTipoDesastre(dto);
 }
