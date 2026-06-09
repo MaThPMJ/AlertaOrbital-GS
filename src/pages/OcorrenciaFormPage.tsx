@@ -189,9 +189,12 @@ export function OcorrenciaFormPage() {
   const numId = Number(id);
   const navigate = useNavigate();
   const location = useLocation();
-  const deteccaoState = (
-    location.state as { deteccao?: { descricao: string; dataInicio: string } } | null
-  )?.deteccao;
+  const locationState = location.state as {
+    deteccao?: { descricao: string; dataInicio: string };
+    dataFim?: string;
+  } | null;
+  const deteccaoState = locationState?.deteccao;
+  const dataFimState = locationState?.dataFim;
 
   const { data: tiposApi = [], isLoading: loadingTipos } = useTiposDesastre();
   const { data: regioesApi = [], isLoading: loadingRegioes } = useRegioes();
@@ -226,14 +229,14 @@ export function OcorrenciaFormPage() {
         tipoDesastreId: ocorrenciaExistente.tipoDesastre.id,
         regiaoId: ocorrenciaExistente.regiao.id,
         dataInicio: ocorrenciaExistente.dataInicio,
-        dataFim: ocorrenciaExistente.dataFim,
+        dataFim: dataFimState ?? ocorrenciaExistente.dataFim,
         descricao: ocorrenciaExistente.descricao,
         areaAfetadaKm2: ocorrenciaExistente.areaAfetadaKm2,
         populacaoAfetada: ocorrenciaExistente.populacaoAfetada,
       });
       setInitialized(true);
     }
-  }, [ocorrenciaExistente, initialized, isEditing]);
+  }, [ocorrenciaExistente, initialized, isEditing, dataFimState]);
 
   if (isEditing && loadingOcorrencia) return <PageLoading />;
 
@@ -299,6 +302,12 @@ export function OcorrenciaFormPage() {
         <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
           <span className="font-semibold">Pré-preenchido via detecção de satélite</span> — selecione
           o tipo e a região e confirme o cadastro.
+        </div>
+      )}
+
+      {dataFimState && isEditing && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+          <span className="font-semibold">Ocorrência marcada como Resolvida.</span> A data de encerramento foi pré-preenchida — confirme e salve.
         </div>
       )}
 
@@ -389,15 +398,17 @@ export function OcorrenciaFormPage() {
                     onChange={(e) => update('dataInicio', e.target.value)}
                     error={errors.dataInicio}
                   />
-                  <Input
-                    label="Data de Encerramento"
-                    type="date"
-                    min={form.dataInicio || undefined}
-                    max={hoje}
-                    value={form.dataFim ?? ''}
-                    onChange={(e) => update('dataFim', e.target.value || undefined)}
-                    hint="Preencha ao resolver o evento"
-                  />
+                  {isEditing && (
+                    <Input
+                      label="Data de Encerramento"
+                      type="date"
+                      min={form.dataInicio || undefined}
+                      max={hoje}
+                      value={form.dataFim ?? ''}
+                      onChange={(e) => update('dataFim', e.target.value || undefined)}
+                      hint="Preencha ao marcar como Resolvido"
+                    />
+                  )}
                 </div>
 
                 <Textarea

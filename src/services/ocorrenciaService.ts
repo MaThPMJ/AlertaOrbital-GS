@@ -29,7 +29,7 @@ function aplicarFiltros(lista: Ocorrencia[], filtros?: OcorrenciaFiltros): Ocorr
         o.descricao.toLowerCase().includes(termo) ||
         o.tipoDesastre.nome.toLowerCase().includes(termo) ||
         o.regiao.nome.toLowerCase().includes(termo) ||
-        o.regiao.cidade.toLowerCase().includes(termo),
+        o.regiao.pais.toLowerCase().includes(termo),
     );
   }
   return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
@@ -59,7 +59,7 @@ export async function listarOcorrencias(filtros?: OcorrenciaFiltros): Promise<Oc
           o.descricao.toLowerCase().includes(termo) ||
           o.tipoDesastre.nome.toLowerCase().includes(termo) ||
           o.regiao.nome.toLowerCase().includes(termo) ||
-          o.regiao.cidade.toLowerCase().includes(termo),
+          o.regiao.pais.toLowerCase().includes(termo),
       );
     }
     return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
@@ -156,7 +156,10 @@ export async function listarSatelitesDaOcorrencia(id: number): Promise<Ocorrenci
 
 // ─── Vínculo ocorrência ↔ satélite ────────────────────────────────────────────
 export async function vincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {
-  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites/${sateliteId}`, { method: 'POST' });
+  await apiFetch<void>(`/ocorrencias/${ocorrenciaId}/satelites`, {
+    method: 'POST',
+    body: JSON.stringify({ idSatelite: sateliteId }),
+  });
 }
 
 export async function desvincularSatelite(ocorrenciaId: number, sateliteId: number): Promise<void> {

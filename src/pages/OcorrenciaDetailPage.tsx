@@ -53,6 +53,9 @@ export function OcorrenciaDetailPage() {
   const [showVincularForm, setShowVincularForm] = useState(false);
   const [sateliteParaVincular, setSateliteParaVincular] = useState<number>(0);
 
+  const [showDataFim, setShowDataFim] = useState(false);
+  const [dataFimInput, setDataFimInput] = useState('');
+
   if (isLoading) return <PageLoading />;
   if (isError || !ocorrencia) {
     return (
@@ -68,6 +71,10 @@ export function OcorrenciaDetailPage() {
 
   function handleTransicao() {
     if (!proximo) return;
+    if (proximo === 'Resolvido' && !showDataFim) {
+      setShowDataFim(true);
+      return;
+    }
     atualizarStatus(
       { id: ocorrencia!.id, status: proximo },
       { onSuccess: () => navigate(`/ocorrencias/${id}`) },
@@ -123,16 +130,46 @@ export function OcorrenciaDetailPage() {
             >
               Editar
             </Button>
-            {proximo && (
+            {proximo && !showDataFim && (
               <Button
                 variant="primary"
                 size="sm"
                 loading={atualizando}
                 onClick={handleTransicao}
-                aria-label={`Transicionar status para ${proximo}`}
               >
                 Marcar como {proximo}
               </Button>
+            )}
+            {showDataFim && (
+              <div className="flex items-end gap-2">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Data de encerramento</label>
+                  <input
+                    type="date"
+                    max={new Date().toISOString().split('T')[0]}
+                    value={dataFimInput}
+                    onChange={(e) => setDataFimInput(e.target.value)}
+                    className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={atualizando}
+                  disabled={!dataFimInput}
+                  onClick={() =>
+                    atualizarStatus(
+                      { id: ocorrencia!.id, status: 'Resolvido' },
+                      { onSuccess: () => navigate(`/ocorrencias/${id}/editar`, { state: { dataFim: dataFimInput } }) },
+                    )
+                  }
+                >
+                  Confirmar
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => setShowDataFim(false)}>
+                  Cancelar
+                </Button>
+              </div>
             )}
           </div>
         }
@@ -304,49 +341,30 @@ export function OcorrenciaDetailPage() {
               {satelites.map((os) => (
                 <div
                   key={os.satelite.id}
-                  className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-4 space-y-2"
+                  className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-4"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-lg" aria-hidden>
-                        🛰️
-                      </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-2xl" aria-hidden>🛰️</span>
                       <div className="min-w-0">
                         <p className="font-medium text-slate-200 truncate">{os.satelite.nome}</p>
-                        <p className="text-xs text-slate-500">
-                          {os.satelite.agencia} · {os.satelite.tipoOrbita}
-                        </p>
+                        <p className="text-xs text-slate-500">{os.satelite.agencia}</p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        desvincularSatelite({
-                          ocorrenciaId: numId,
-                          sateliteId: os.satelite.id,
-                        })
-                      }
-                      disabled={desvinculando}
-                      className="shrink-0 text-xs text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
-                      aria-label={`Desvincular ${os.satelite.nome}`}
-                    >
-                      Desvincular
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400">
-                    <span>Res: {os.satelite.resolucaoMetros}m</span>
-                    <span>Imagens: {os.quantidadeImagens}</span>
-                    <span>Confiança: {os.confianca}%</span>
-                    <span className="col-span-2">
-                      1ª detecção: {formatarDataHora(os.primeiraDeteccao)}
-                    </span>
-                  </div>
-                  <div className="overflow-hidden rounded-full bg-slate-700">
-                    <div
-                      className="h-1.5 rounded-full bg-blue-500 transition-all"
-                      style={{ width: `${os.confianca}%` }}
-                      aria-label={`Confiança: ${os.confianca}%`}
-                    />
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${os.satelite.ativo ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-500'}`}>
+                        {os.satelite.ativo ? 'Operacional' : 'Inativo'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => desvincularSatelite({ ocorrenciaId: numId, sateliteId: os.satelite.id })}
+                        disabled={desvinculando}
+                        className="text-xs text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
+                        aria-label={`Desvincular ${os.satelite.nome}`}
+                      >
+                        Desvincular
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
