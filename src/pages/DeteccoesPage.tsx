@@ -200,7 +200,7 @@ export function DeteccoesPage() {
       )}
 
       {/* Contadores */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: 'Total',       valor: deteccoes.length, cor: 'text-slate-200',   bg: 'bg-slate-800 border-slate-700' },
           { label: 'NASA EONET', valor: totalEonet,        cor: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/30' },

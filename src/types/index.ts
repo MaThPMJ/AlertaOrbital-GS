@@ -100,6 +100,18 @@ export interface OcorrenciaFiltros {
   busca?: string;
 }
 
+// ─── Tipos utilitários com Intersection Types ────────────────────────────────
+
+// Ocorrência completa: dados da ocorrência + satélites vinculados
+export type OcorrenciaCompleta = Ocorrencia & {
+  satelites: OcorrenciaSatelite[];
+};
+
+// Alerta enriquecido: alerta + informações da ocorrência relacionada
+export type AlertaComOcorrencia = Alerta & {
+  ocorrencia: Pick<Ocorrencia, 'id' | 'descricao' | 'status'>;
+};
+
 // ─── Dados agregados para o Dashboard ────────────────────────────────────────
 export interface DashboardStats {
   totalAtivos: number;
