@@ -1,5 +1,8 @@
 import type { DeteccaoExterna } from './eonetService';
 
+// USGS opera o Landsat-9 (parceria NASA/USGS), e Sentinel-2 é usado para avaliação de danos pós-sismo
+const SATELITES_SISMO = { ids: [5, 3, 4], nome: 'Landsat-9 (NASA/USGS) / Sentinel-2' };
+
 function escopoDoTitulo(title: string): DeteccaoExterna['escopo'] {
   const t = title.toLowerCase();
   if (t.includes('brazil') || t.includes('brasil')) return 'Brasil';
@@ -10,9 +13,9 @@ export async function buscarTerremotos(): Promise<DeteccaoExterna[]> {
   const url =
     'https://earthquake.usgs.gov/fdsnws/event/1/query' +
     '?format=geojson&minmagnitude=3' +
-    '&minlatitude=-34&maxlatitude=5' +
-    '&minlongitude=-74&maxlongitude=-28' +
-    '&orderby=time&limit=20';
+    '&minlatitude=-56&maxlatitude=15' +
+    '&minlongitude=-82&maxlongitude=-28' +
+    '&orderby=time&limit=30';
 
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`USGS ${res.status}`);
@@ -36,7 +39,8 @@ export async function buscarTerremotos(): Promise<DeteccaoExterna[]> {
     dataDeteccao: new Date(f.properties.time).toISOString(),
     magnitude: f.properties.mag,
     link: f.properties.url,
-    satelite: 'Rede Sismográfica Global (USGS)',
+    satelite: SATELITES_SISMO.nome,
+    sateliteIds: SATELITES_SISMO.ids,
     escopo: escopoDoTitulo(f.properties.title),
   }));
 }

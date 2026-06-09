@@ -5,6 +5,7 @@ import { useRegioes } from '../hooks/useRegioes';
 import { useTiposDesastre } from '../hooks/useTiposDesastre';
 import { criarTipoDesastre } from '../services/tipoDesastreService';
 import { criarRegiao } from '../services/regiaoService';
+import { vincularSatelite } from '../services/ocorrenciaService';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -192,9 +193,11 @@ export function OcorrenciaFormPage() {
   const locationState = location.state as {
     deteccao?: { descricao: string; dataInicio: string };
     dataFim?: string;
+    satelitesSugeridos?: number[];
   } | null;
   const deteccaoState = locationState?.deteccao;
   const dataFimState = locationState?.dataFim;
+  const satelitesSugeridos = locationState?.satelitesSugeridos ?? [];
 
   const { data: tiposApi = [], isLoading: loadingTipos } = useTiposDesastre();
   const { data: regioesApi = [], isLoading: loadingRegioes } = useRegioes();
@@ -268,7 +271,15 @@ export function OcorrenciaFormPage() {
       );
     } else {
       cadastrar(form, {
-        onSuccess: (nova) => navigate(`/ocorrencias/${nova.id}`),
+        onSuccess: async (nova) => {
+          // Vincula automaticamente os satélites sugeridos pela detecção
+          if (satelitesSugeridos.length > 0) {
+            await Promise.allSettled(
+              satelitesSugeridos.map((sid) => vincularSatelite(nova.id, sid)),
+            );
+          }
+          navigate(`/ocorrencias/${nova.id}`);
+        },
       });
     }
   }
@@ -302,6 +313,11 @@ export function OcorrenciaFormPage() {
         <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
           <span className="font-semibold">Pré-preenchido via detecção de satélite</span> — selecione
           o tipo e a região e confirme o cadastro.
+          {satelitesSugeridos.length > 0 && (
+            <span className="block mt-1 text-xs text-blue-400">
+              {satelitesSugeridos.length} satélite{satelitesSugeridos.length > 1 ? 's' : ''} detector{satelitesSugeridos.length > 1 ? 'es' : ''} será{satelitesSugeridos.length > 1 ? 'ão' : ''} vinculado{satelitesSugeridos.length > 1 ? 's' : ''} automaticamente ao criar.
+            </span>
+          )}
         </div>
       )}
 
