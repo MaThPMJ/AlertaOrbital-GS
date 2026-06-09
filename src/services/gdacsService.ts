@@ -40,20 +40,23 @@ interface GdacsFeature {
 
 export async function buscarEventosGDACS(): Promise<DeteccaoExterna[]> {
   const hoje = new Date();
-  const ha30dias = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().split('T')[0];
 
   const url =
     `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH` +
-    `?fromDate=${fmt(ha30dias)}&toDate=${fmt(hoje)}` +
+    `?fromDate=2025-01-01&toDate=${fmt(hoje)}` +
     `&alertlevel=Green,Orange,Red` +
-    `&pagesize=50`;
+    `&pagesize=100`;
 
-  const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!res.ok) throw new Error(`GDACS HTTP ${res.status}`);
 
   const data = (await res.json()) as { features: GdacsFeature[] };
-  if (!Array.isArray(data.features)) return [];
+  if (!Array.isArray(data.features)) {
+    console.warn('[GDACS] Resposta inesperada:', data);
+    return [];
+  }
+  console.info(`[GDACS] ${data.features.length} eventos recebidos antes do filtro SA`);
 
   return data.features
     .filter((f) => {

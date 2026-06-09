@@ -100,7 +100,7 @@ function parseEventos(
 
 export async function buscarEventosEONET(): Promise<DeteccaoExterna[]> {
   const params = new URLSearchParams({
-    days: '90',
+    days: '365',
     categories: CATEGORIAS,
     limit: '50',
     bbox: BBOX_SA,
