@@ -45,11 +45,20 @@ function iconeParaNome(nome: string): string {
   return 'warning';
 }
 
-function nivelRiscoParaSeveridade(nivel: string): AlertaSeveridade {
-  const n = (nivel ?? '').toLowerCase();
-  if (n.includes('critico') || n.includes('crítico') || n.includes('extremo')) return 'Critico';
-  if (n.includes('alto') || n.includes('grave')) return 'Alto';
-  if (n.includes('medio') || n.includes('médio') || n.includes('moderado')) return 'Medio';
+// Severidade pode vir como tag no início da mensagem: "[CRÍTICO] texto..."
+// Se não houver tag, deriva do status da ocorrência.
+function extrairSeveridade(mensagem: string, statusOcorrencia: string): AlertaSeveridade {
+  const tag = mensagem.match(/^\[([^\]]+)\]/);
+  if (tag) {
+    const t = tag[1].toUpperCase();
+    if (t.includes('CRÍT') || t.includes('CRIT')) return 'Critico';
+    if (t === 'ALTO') return 'Alto';
+    if (t === 'MÉDIO' || t === 'MEDIO') return 'Medio';
+    if (t === 'BAIXO') return 'Baixo';
+  }
+  const s = (statusOcorrencia ?? '').toUpperCase().trim();
+  if (s === 'ATIVO') return 'Alto';
+  if (s === 'CONTROLADO') return 'Medio';
   return 'Baixo';
 }
 
@@ -127,12 +136,14 @@ export function mapOcorrencia(dto: OcorrenciaDTO): Ocorrencia {
 }
 
 export function mapAlerta(dto: AlertaDTO): Alerta {
+  // Remove a tag de severidade da mensagem exibida: "[CRÍTICO] texto" → "texto"
+  const mensagemLimpa = dto.mensagem.replace(/^\[[^\]]+\]\s*/, '');
   return {
     id: dto.idAlerta,
     ocorrenciaId: dto.idOcorrencia,
-    titulo: dto.mensagem.length > 60 ? dto.mensagem.substring(0, 57) + '…' : dto.mensagem,
-    mensagem: dto.mensagem,
-    severidade: nivelRiscoParaSeveridade(dto.statusOcorrencia),
+    titulo: mensagemLimpa.length > 60 ? mensagemLimpa.substring(0, 57) + '…' : mensagemLimpa,
+    mensagem: mensagemLimpa,
+    severidade: extrairSeveridade(dto.mensagem, dto.statusOcorrencia),
     emitidoEm: dto.dataEmissao ?? new Date().toISOString(),
     emitidoPor: dto.nomeUsuario ?? 'Sistema',
   };

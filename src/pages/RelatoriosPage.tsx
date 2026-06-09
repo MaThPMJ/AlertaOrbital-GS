@@ -114,7 +114,7 @@ export function RelatoriosPage() {
             <Select
               label="Região"
               placeholder="Todas"
-              options={regioes.map((r) => ({ value: r.id, label: `${r.nome} (${r.estado})` }))}
+              options={regioes.map((r) => ({ value: r.id, label: `${r.nome} (${r.pais})` }))}
               value={filtros.regiaoId ?? ''}
               onChange={(e) =>
                 setFiltros((f) => ({

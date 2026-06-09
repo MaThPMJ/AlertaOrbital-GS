@@ -71,6 +71,7 @@ export interface CriarAlertaPayload {
   mensagem: string;
   idOcorrencia: number;
   idUsuario: number;
+  severidade: 'CRITICO' | 'ALTO' | 'MEDIO' | 'BAIXO';
 }
 
 export interface CriarTipoDesastrePayload {

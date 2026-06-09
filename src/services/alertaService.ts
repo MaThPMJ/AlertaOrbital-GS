@@ -29,10 +29,22 @@ export async function listarTodosAlertas(): Promise<Alerta[]> {
   }
 }
 
+const TAGS: Record<CriarAlertaPayload['severidade'], string> = {
+  CRITICO: '[CRÍTICO]',
+  ALTO: '[ALTO]',
+  MEDIO: '[MÉDIO]',
+  BAIXO: '[BAIXO]',
+};
+
 export async function criarAlerta(payload: CriarAlertaPayload): Promise<Alerta> {
+  const tag = TAGS[payload.severidade];
   const dto = await apiFetch<AlertaDTO>('/alertas', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      mensagem: `${tag} ${payload.mensagem}`,
+      idOcorrencia: payload.idOcorrencia,
+      idUsuario: payload.idUsuario,
+    }),
   });
   return mapAlerta(dto);
 }

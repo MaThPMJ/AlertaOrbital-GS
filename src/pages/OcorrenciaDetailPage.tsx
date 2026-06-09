@@ -49,6 +49,7 @@ export function OcorrenciaDetailPage() {
   const [showAlertaForm, setShowAlertaForm] = useState(false);
   const [alertaMensagem, setAlertaMensagem] = useState('');
   const [alertaUsuarioId, setAlertaUsuarioId] = useState<number>(0);
+  const [alertaSeveridade, setAlertaSeveridade] = useState<'CRITICO' | 'ALTO' | 'MEDIO' | 'BAIXO'>('ALTO');
 
   const [showVincularForm, setShowVincularForm] = useState(false);
   const [sateliteParaVincular, setSateliteParaVincular] = useState<number>(0);
@@ -85,11 +86,12 @@ export function OcorrenciaDetailPage() {
     e.preventDefault();
     if (!alertaMensagem.trim() || !alertaUsuarioId) return;
     criarAlerta(
-      { mensagem: alertaMensagem.trim(), idOcorrencia: numId, idUsuario: alertaUsuarioId },
+      { mensagem: alertaMensagem.trim(), idOcorrencia: numId, idUsuario: alertaUsuarioId, severidade: alertaSeveridade },
       {
         onSuccess: () => {
           setAlertaMensagem('');
           setAlertaUsuarioId(0);
+          setAlertaSeveridade('ALTO');
           setShowAlertaForm(false);
         },
       },
@@ -394,6 +396,17 @@ export function OcorrenciaDetailPage() {
         {showAlertaForm && (
           <div className="border-b border-slate-700/60 bg-slate-800/40 px-5 py-4">
             <form onSubmit={handleCriarAlerta} className="space-y-3">
+              <Select
+                label="Nível de severidade"
+                options={[
+                  { value: 'CRITICO', label: 'Crítico — risco imediato à vida' },
+                  { value: 'ALTO', label: 'Alto — situação grave' },
+                  { value: 'MEDIO', label: 'Médio — monitoramento necessário' },
+                  { value: 'BAIXO', label: 'Baixo — informativo' },
+                ]}
+                value={alertaSeveridade}
+                onChange={(e) => setAlertaSeveridade(e.target.value as typeof alertaSeveridade)}
+              />
               <Textarea
                 label="Mensagem do alerta"
                 placeholder="Descreva a situação e as medidas recomendadas…"
