@@ -188,7 +188,7 @@ npm run preview
 |---|---|
 | 🌐 **Deploy (Vercel)** | [https://alerta-orbital-gs.vercel.app/](https://alerta-orbital-gs.vercel.app/) |
 | 📦 **Repositório GitHub** | [https://github.com/MaThPMJ/AlertaOrbital-GS](https://github.com/MaThPMJ/AlertaOrbital-GS) |
-| 🎥 **Vídeo no YouTube** | *(link a ser adicionado)* |
+| 🎥 **Vídeo no YouTube** | [https://youtu.be/a1dr-9BHcwg] |
 
 ---
 
