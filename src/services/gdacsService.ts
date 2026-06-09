@@ -39,14 +39,8 @@ interface GdacsFeature {
 }
 
 export async function buscarEventosGDACS(): Promise<DeteccaoExterna[]> {
-  const hoje = new Date();
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
-
-  const url =
-    `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH` +
-    `?fromDate=2025-01-01&toDate=${fmt(hoje)}` +
-    `&alertlevel=Green,Orange,Red` +
-    `&pagesize=100`;
+  // Rota proxy no backend — evita bloqueio de CORS do navegador
+  const url = 'https://javags-ggho.onrender.com/proxy/gdacs';
 
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!res.ok) throw new Error(`GDACS HTTP ${res.status}`);

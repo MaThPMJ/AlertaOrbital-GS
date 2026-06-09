@@ -114,9 +114,8 @@ export async function buscarEventosEONET(): Promise<DeteccaoExterna[]> {
   const eventos = parseEventos(data, 'América do Sul');
 
   return eventos.map((e) => {
-    const dentroBrasil =
-      e.longitude >= -74 && e.longitude <= -28 &&
-      e.latitude  >= -34 && e.latitude  <=  5;
+    const tituloBaixo = e.titulo.toLowerCase();
+    const dentroBrasil = tituloBaixo.includes('brazil') || tituloBaixo.includes('brasil');
     return dentroBrasil ? { ...e, escopo: 'Brasil' as const } : e;
   });
 }
