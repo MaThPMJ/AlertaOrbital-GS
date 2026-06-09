@@ -10,6 +10,11 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   {
+    pergunta: 'O que é a aba de Detecções ao Vivo?',
+    resposta:
+      'A aba Detecções ao Vivo exibe eventos naturais detectados em tempo real por três fontes: NASA EONET (eventos de grande escala), USGS (sismos acima de magnitude 3.0) e GDACS da ONU (enchentes, incêndios e terremotos com impacto humanitário). Todos os eventos são filtrados para a América do Sul.',
+  },
+  {
     pergunta: 'O que é o AlertaOrbital?',
     resposta:
       'O AlertaOrbital é uma plataforma de monitoramento de desastres naturais que utiliza dados de satélites das agências NASA, ESA e INPE para registrar, acompanhar e analisar ocorrências no território brasileiro.',
