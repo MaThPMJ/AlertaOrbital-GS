@@ -52,9 +52,9 @@ const faqs: FaqItem[] = [
 ];
 
 const contatos = [
-  { label: 'Davi Isac', email: 'daviisac@fiap.com.br', github: 'https://github.com/klaanyz' },
-  { label: 'Matheus Peres', email: 'matheusperes@fiap.com.br', github: 'https://github.com/MaThPMJ' },
-  { label: 'Pedro Gonçalves', email: 'pedrogoncalves@fiap.com.br', github: 'https://github.com/PxdroGoncalves' },
+  { label: 'Davi Isac', email: 'davi_isac@outlook.com.br', github: 'https://github.com/klaanyz' },
+  { label: 'Matheus Peres', email: 'matheusperes220@fiap.com.br', github: 'https://github.com/MaThPMJ' },
+  { label: 'Pedro Gonçalves', email: 'pedrogoncalvesr89@gmail.com', github: 'https://github.com/PxdroGoncalves' },
 ];
 
 function ChevronIcon({ open }: { open: boolean }) {
