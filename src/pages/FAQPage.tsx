@@ -10,6 +10,21 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   {
+    pergunta: 'Como criar uma ocorrência a partir de uma detecção?',
+    resposta:
+      'Na aba Detecções ao Vivo, clique em "+ Criar Ocorrência" no cartão do evento. O sistema preenche automaticamente a descrição, data e os satélites responsáveis pela detecção. Basta escolher a região, confirmar os dados e salvar.',
+  },
+  {
+    pergunta: 'Quais satélites o sistema utiliza?',
+    resposta:
+      'O AlertaOrbital trabalha com seis satélites: CBERS-4A (INPE/Brasil-China), Amazonia-1 (INPE), Sentinel-2A e 2B (ESA/Europa), Landsat-9 (NASA/USGS) e GOES-16 (NOAA/NASA). Cada tipo de evento é associado ao satélite mais adequado para monitorá-lo.',
+  },
+  {
+    pergunta: 'O que é a aba de Detecções ao Vivo?',
+    resposta:
+      'A aba Detecções ao Vivo exibe eventos naturais detectados em tempo real por três fontes: NASA EONET (eventos de grande escala), USGS (sismos acima de magnitude 3.0) e GDACS da ONU (enchentes, incêndios e terremotos com impacto humanitário). Todos os eventos são filtrados para a América do Sul.',
+  },
+  {
     pergunta: 'O que é o AlertaOrbital?',
     resposta:
       'O AlertaOrbital é uma plataforma de monitoramento de desastres naturais que utiliza dados de satélites das agências NASA, ESA e INPE para registrar, acompanhar e analisar ocorrências no território brasileiro.',
