@@ -100,7 +100,7 @@ export function OcorrenciasPage() {
 
             <Select
               placeholder="Todas as regiões"
-              options={regioes.map((r) => ({ value: r.id, label: `${r.nome} (${r.estado})` }))}
+              options={regioes.map((r) => ({ value: r.id, label: `${r.nome} (${r.pais})` }))}
               value={filtros.regiaoId ?? ''}
               onChange={(e) =>
                 setFiltros((f) => ({
@@ -189,7 +189,7 @@ export function OcorrenciasPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-slate-200">{o.regiao.nome}</p>
-                      <p className="text-xs text-slate-500">{o.regiao.estado}</p>
+                      <p className="text-xs text-slate-500">{o.regiao.pais}</p>
                     </td>
                     <td className="hidden px-4 py-3 text-slate-400 md:table-cell">
                       {formatarData(o.dataInicio)}

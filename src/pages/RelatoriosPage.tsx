@@ -39,7 +39,7 @@ export function RelatoriosPage() {
       ocorrencias: ocorrencias.map((o) => ({
         id: o.id,
         tipoDesastre: o.tipoDesastre.nome,
-        regiao: `${o.regiao.nome} (${o.regiao.estado})`,
+        regiao: `${o.regiao.nome} (${o.regiao.pais})`,
         dataInicio: o.dataInicio,
         dataFim: o.dataFim ?? null,
         descricao: o.descricao,
@@ -217,7 +217,7 @@ export function RelatoriosPage() {
                       <span className="mr-1.5">{TIPO_ICONE[o.tipoDesastre.icone] ?? '⚠️'}</span>
                       {o.tipoDesastre.nome}
                     </td>
-                    <td className="px-4 py-3">{o.regiao.nome} <span className="text-slate-500">({o.regiao.estado})</span></td>
+                    <td className="px-4 py-3">{o.regiao.nome} <span className="text-slate-500">({o.regiao.pais})</span></td>
                     <td className="px-4 py-3 tabular-nums">{formatarData(o.dataInicio)}</td>
                     <td className="px-4 py-3 tabular-nums">
                       {o.populacaoAfetada ? formatarNumero(o.populacaoAfetada) : '—'}

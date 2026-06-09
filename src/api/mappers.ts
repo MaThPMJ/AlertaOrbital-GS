@@ -58,8 +58,8 @@ function nivelRiscoParaSeveridade(nivel: string): AlertaSeveridade {
 export function mapRegiao(dto: RegiaoDTO): Regiao {
   return {
     id: dto.idRegiao,
-    nome: dto.nome,
-    estado: dto.estado,
+    nome: dto.cidade,
+    pais: dto.pais,
     latitude: 0,
     longitude: 0,
   };
@@ -96,8 +96,8 @@ export function mapOcorrencia(dto: OcorrenciaDTO): Ocorrencia {
 
   const regiao: Regiao = {
     id: dto.idRegiao,
-    nome: dto.nomeRegiao,
-    estado: dto.estadoRegiao,
+    nome: dto.cidadeRegiao,
+    pais: '',
     latitude: 0,
     longitude: 0,
   };

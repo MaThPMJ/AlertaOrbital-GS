@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useCadastrarOcorrencia, useEditarOcorrencia, useOcorrencia } from '../hooks/useOcorrencias';
-import { useRegioes, useCriarRegiao } from '../hooks/useRegioes';
-import { useTiposDesastre, useCriarTipoDesastre } from '../hooks/useTiposDesastre';
+import { useRegioes } from '../hooks/useRegioes';
+import { useTiposDesastre } from '../hooks/useTiposDesastre';
+import { criarTipoDesastre } from '../services/tipoDesastreService';
+import { criarRegiao } from '../services/regiaoService';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -10,7 +12,7 @@ import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
 import { Button } from '../components/ui/Button';
 import { PageLoading } from '../components/ui/LoadingSpinner';
-import type { OcorrenciaFormData } from '../types';
+import type { OcorrenciaFormData, TipoDesastre, Regiao } from '../types';
 
 interface FormErrors {
   tipoDesastreId?: string;
@@ -29,125 +31,153 @@ const INITIAL_DATA: OcorrenciaFormData = {
   populacaoAfetada: undefined,
 };
 
-const NIVEIS_RISCO = ['BAIXO', 'MEDIO', 'ALTO', 'CRITICO'];
 
-const ESTADOS_BR = [
-  'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
-  'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+const NIVEIS_RISCO = [
+  { value: 'BAIXO', label: 'Baixo' },
+  { value: 'MEDIO', label: 'Médio' },
+  { value: 'ALTO', label: 'Alto' },
+  { value: 'CRITICO', label: 'Crítico' },
 ];
 
-// ─── Subform: Novo Tipo de Desastre ──────────────────────────────────────────
+function erroLegivel(e: unknown): string {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (msg.includes('ORA-00001') || msg.toLowerCase().includes('unique constraint')) {
+    return 'Já existe um registro com este nome no banco de dados.';
+  }
+  // Extrai só a parte relevante sem a URL do Oracle
+  const match = msg.match(/"erro"\s*:\s*"([^"]+)"/);
+  if (match) return match[1].split('\n')[0];
+  return msg.length > 120 ? msg.slice(0, 120) + '…' : msg;
+}
+
+// ─── Painel: Novo Tipo ────────────────────────────────────────────────────────
 function NovoTipoPanel({
-  onCriado,
+  onSalvo,
   onCancelar,
 }: {
-  onCriado: (id: number) => void;
+  onSalvo: (tipo: TipoDesastre) => void;
   onCancelar: () => void;
 }) {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [nivelRisco, setNivelRisco] = useState('ALTO');
-  const { mutate, isPending, error } = useCriarTipoDesastre();
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nome.trim() || !descricao.trim()) return;
-    mutate(
-      { nome: nome.trim(), descricao: descricao.trim(), nivelRisco },
-      { onSuccess: (tipo) => onCriado(tipo.id) },
-    );
+  async function salvar() {
+    if (!nome.trim()) return;
+    setSalvando(true);
+    setErro('');
+    try {
+      const tipo = await criarTipoDesastre({
+        nome: nome.trim(),
+        descricao: descricao.trim() || nome.trim(),
+        nivelRisco,
+      });
+      onSalvo(tipo);
+    } catch (e) {
+      setErro(erroLegivel(e));
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
     <div className="mt-2 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 space-y-3">
       <p className="text-xs font-semibold text-blue-300">Cadastrar novo tipo de desastre</p>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-3">
         <Input
-          label="Nome"
+          label="Nome do tipo *"
           placeholder="ex.: Terremoto"
-          required
           value={nome}
-          onChange={(e) => setNome(e.target.value)}
+          onChange={(e) => { setNome(e.target.value); setErro(''); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } }}
         />
         <Input
           label="Descrição"
-          placeholder="ex.: Abalo sísmico de origem natural"
-          required
+          placeholder="ex.: Abalo sísmico causado por movimentos tectônicos"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
         />
         <Select
           label="Nível de Risco"
-          options={NIVEIS_RISCO.map((n) => ({ value: n, label: n }))}
+          options={NIVEIS_RISCO}
           value={nivelRisco}
           onChange={(e) => setNivelRisco(e.target.value)}
         />
-        {error && (
-          <p className="text-xs text-red-400">{(error as Error).message}</p>
-        )}
+        {erro && <p className="text-xs text-red-400">{erro}</p>}
         <div className="flex gap-2">
-          <Button type="submit" size="sm" variant="primary" loading={isPending} disabled={!nome.trim() || !descricao.trim()}>
-            Salvar tipo
+          <Button type="button" size="sm" variant="primary" loading={salvando} disabled={!nome.trim()} onClick={salvar}>
+            Salvar
           </Button>
           <Button type="button" size="sm" variant="secondary" onClick={onCancelar}>
             Cancelar
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
 
-// ─── Subform: Nova Região ─────────────────────────────────────────────────────
+// ─── Painel: Nova Região ──────────────────────────────────────────────────────
+const PAISES_SUL_AMERICA = [
+  'Argentina', 'Bolívia', 'Brasil', 'Chile', 'Colômbia', 'Equador',
+  'Guiana', 'Guiana Francesa', 'Paraguai', 'Peru', 'Suriname', 'Uruguai', 'Venezuela',
+];
+
 function NovaRegiaoPanel({
-  onCriada,
+  onSalva,
   onCancelar,
 }: {
-  onCriada: (id: number) => void;
+  onSalva: (regiao: Regiao) => void;
   onCancelar: () => void;
 }) {
-  const [nome, setNome] = useState('');
-  const [estado, setEstado] = useState('SP');
-  const { mutate, isPending, error } = useCriarRegiao();
+  const [cidade, setCidade] = useState('');
+  const [pais, setPais] = useState('Brasil');
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nome.trim()) return;
-    mutate(
-      { nome: nome.trim(), estado, pais: 'Brasil' },
-      { onSuccess: (regiao) => onCriada(regiao.id) },
-    );
+  async function salvar() {
+    if (!cidade.trim()) return;
+    setSalvando(true);
+    setErro('');
+    try {
+      const regiao = await criarRegiao({ cidade: cidade.trim(), pais });
+      onSalva(regiao);
+    } catch (e) {
+      setErro(erroLegivel(e));
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
     <div className="mt-2 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 space-y-3">
       <p className="text-xs font-semibold text-blue-300">Cadastrar nova região</p>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-3">
         <Input
-          label="Nome da Região"
-          placeholder="ex.: Vale do Silício RS"
-          required
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
+          label="Nome da região *"
+          placeholder="ex.: Cordilheira dos Andes, Vale do Paraná"
+          value={cidade}
+          onChange={(e) => { setCidade(e.target.value); setErro(''); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } }}
         />
         <Select
-          label="Estado (UF)"
-          options={ESTADOS_BR.map((uf) => ({ value: uf, label: uf }))}
-          value={estado}
-          onChange={(e) => setEstado(e.target.value)}
+          label="País"
+          options={PAISES_SUL_AMERICA.map((p) => ({ value: p, label: p }))}
+          value={pais}
+          onChange={(e) => setPais(e.target.value)}
         />
-        {error && (
-          <p className="text-xs text-red-400">{(error as Error).message}</p>
-        )}
+        {erro && <p className="text-xs text-red-400">{erro}</p>}
         <div className="flex gap-2">
-          <Button type="submit" size="sm" variant="primary" loading={isPending} disabled={!nome.trim()}>
-            Salvar região
+          <Button type="button" size="sm" variant="primary" loading={salvando} disabled={!cidade.trim()} onClick={salvar}>
+            Salvar
           </Button>
           <Button type="button" size="sm" variant="secondary" onClick={onCancelar}>
             Cancelar
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
@@ -163,8 +193,15 @@ export function OcorrenciaFormPage() {
     location.state as { deteccao?: { descricao: string; dataInicio: string } } | null
   )?.deteccao;
 
-  const { data: tipos = [], isLoading: loadingTipos } = useTiposDesastre();
-  const { data: regioes = [], isLoading: loadingRegioes } = useRegioes();
+  const { data: tiposApi = [], isLoading: loadingTipos } = useTiposDesastre();
+  const { data: regioesApi = [], isLoading: loadingRegioes } = useRegioes();
+
+  // Itens criados na sessão ficam no estado local — aparecem imediatamente
+  const [tiposExtras, setTiposExtras] = useState<TipoDesastre[]>([]);
+  const [regioesExtras, setRegioesExtras] = useState<Regiao[]>([]);
+
+  const tipos = [...tiposApi, ...tiposExtras].sort((a, b) => a.nome.localeCompare(b.nome));
+  const regioes = [...regioesApi, ...regioesExtras].sort((a, b) => a.nome.localeCompare(b.nome));
 
   const { data: ocorrenciaExistente, isLoading: loadingOcorrencia } = useOcorrencia(numId);
   const { mutate: cadastrar, isPending: cadastrando, error: erroCadastro } = useCadastrarOcorrencia();
@@ -180,7 +217,6 @@ export function OcorrenciaFormPage() {
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [initialized, setInitialized] = useState(false);
-
   const [showNovoTipo, setShowNovoTipo] = useState(false);
   const [showNovaRegiao, setShowNovaRegiao] = useState(false);
 
@@ -222,7 +258,6 @@ export function OcorrenciaFormPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-
     if (isEditing && ocorrenciaExistente) {
       editar(
         { id: numId, dados: form, statusAtual: ocorrenciaExistente.status },
@@ -269,7 +304,6 @@ export function OcorrenciaFormPage() {
 
       <form onSubmit={handleSubmit} noValidate aria-label="Formulário de ocorrência">
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Coluna principal */}
           <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
@@ -277,7 +311,7 @@ export function OcorrenciaFormPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {/* Tipo de Desastre + cadastro inline */}
+                  {/* Tipo de Desastre */}
                   <div>
                     <Select
                       label="Tipo de Desastre"
@@ -285,13 +319,9 @@ export function OcorrenciaFormPage() {
                       placeholder="Selecione…"
                       options={tipos.map((t) => ({ value: t.id, label: t.nome }))}
                       value={form.tipoDesastreId || ''}
-                      onChange={(e) => {
-                        update('tipoDesastreId', Number(e.target.value));
-                        setShowNovoTipo(false);
-                      }}
+                      onChange={(e) => { update('tipoDesastreId', Number(e.target.value)); setShowNovoTipo(false); }}
                       error={errors.tipoDesastreId}
                       disabled={loadingTipos}
-                      aria-required="true"
                     />
                     {!showNovoTipo ? (
                       <button
@@ -303,8 +333,9 @@ export function OcorrenciaFormPage() {
                       </button>
                     ) : (
                       <NovoTipoPanel
-                        onCriado={(novoId) => {
-                          update('tipoDesastreId', novoId);
+                        onSalvo={(tipo) => {
+                          setTiposExtras((prev) => [...prev, tipo]);
+                          update('tipoDesastreId', tipo.id);
                           setShowNovoTipo(false);
                         }}
                         onCancelar={() => setShowNovoTipo(false)}
@@ -312,7 +343,7 @@ export function OcorrenciaFormPage() {
                     )}
                   </div>
 
-                  {/* Região Afetada + cadastro inline */}
+                  {/* Região Afetada */}
                   <div>
                     <Select
                       label="Região Afetada"
@@ -320,16 +351,12 @@ export function OcorrenciaFormPage() {
                       placeholder="Selecione…"
                       options={regioes.map((r) => ({
                         value: r.id,
-                        label: `${r.nome} (${r.estado})`,
+                        label: `${r.nome} (${r.pais})`,
                       }))}
                       value={form.regiaoId || ''}
-                      onChange={(e) => {
-                        update('regiaoId', Number(e.target.value));
-                        setShowNovaRegiao(false);
-                      }}
+                      onChange={(e) => { update('regiaoId', Number(e.target.value)); setShowNovaRegiao(false); }}
                       error={errors.regiaoId}
                       disabled={loadingRegioes}
-                      aria-required="true"
                     />
                     {!showNovaRegiao ? (
                       <button
@@ -341,8 +368,9 @@ export function OcorrenciaFormPage() {
                       </button>
                     ) : (
                       <NovaRegiaoPanel
-                        onCriada={(novoId) => {
-                          update('regiaoId', novoId);
+                        onSalva={(regiao) => {
+                          setRegioesExtras((prev) => [...prev, regiao]);
+                          update('regiaoId', regiao.id);
                           setShowNovaRegiao(false);
                         }}
                         onCancelar={() => setShowNovaRegiao(false)}
@@ -360,7 +388,6 @@ export function OcorrenciaFormPage() {
                     value={form.dataInicio}
                     onChange={(e) => update('dataInicio', e.target.value)}
                     error={errors.dataInicio}
-                    aria-required="true"
                   />
                   <Input
                     label="Data de Encerramento"
@@ -381,7 +408,6 @@ export function OcorrenciaFormPage() {
                   value={form.descricao}
                   onChange={(e) => update('descricao', e.target.value)}
                   error={errors.descricao}
-                  aria-required="true"
                 />
               </CardContent>
             </Card>
@@ -412,10 +438,7 @@ export function OcorrenciaFormPage() {
                     placeholder="ex.: 50000"
                     value={form.populacaoAfetada ?? ''}
                     onChange={(e) =>
-                      update(
-                        'populacaoAfetada',
-                        e.target.value ? Number(e.target.value) : undefined,
-                      )
+                      update('populacaoAfetada', e.target.value ? Number(e.target.value) : undefined)
                     }
                     hint="Número estimado de pessoas impactadas"
                   />
@@ -433,8 +456,7 @@ export function OcorrenciaFormPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-slate-500">
-                    O status é gerenciado pelo ciclo de vida na tela de detalhes. Aqui você edita
-                    apenas os dados do evento.
+                    O status é gerenciado pelo ciclo de vida na tela de detalhes.
                   </p>
                 </CardContent>
               </Card>
@@ -448,9 +470,7 @@ export function OcorrenciaFormPage() {
                     <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse" aria-hidden />
                     <div>
                       <p className="text-sm font-semibold text-red-300">Ativo</p>
-                      <p className="text-xs text-slate-500">
-                        Toda nova ocorrência é iniciada como Ativa.
-                      </p>
+                      <p className="text-xs text-slate-500">Toda nova ocorrência inicia como Ativa.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -472,20 +492,9 @@ export function OcorrenciaFormPage() {
                   </>
                 ) : (
                   <>
-                    <p>
-                      • Não encontrou o tipo ou região? Use os links{' '}
-                      <strong className="text-slate-400">+ Cadastrar</strong> abaixo de cada campo.
-                    </p>
-                    <p>
-                      • O evento será registrado com status{' '}
-                      <strong className="text-slate-400">Ativo</strong>.
-                    </p>
-                    <p>
-                      • Ciclo de vida:{' '}
-                      <strong className="text-red-400">Ativo</strong> →{' '}
-                      <strong className="text-amber-400">Controlado</strong> →{' '}
-                      <strong className="text-emerald-400">Resolvido</strong>.
-                    </p>
+                    <p>• Não encontrou o tipo ou região? Use <strong className="text-slate-400">+ Cadastrar</strong> abaixo do campo.</p>
+                    <p>• O evento será registrado com status <strong className="text-slate-400">Ativo</strong>.</p>
+                    <p>• Ciclo: <strong className="text-red-400">Ativo</strong> → <strong className="text-amber-400">Controlado</strong> → <strong className="text-emerald-400">Resolvido</strong>.</p>
                   </>
                 )}
               </CardContent>
@@ -499,18 +508,9 @@ export function OcorrenciaFormPage() {
 
             <div className="flex flex-col gap-3">
               <Button type="submit" loading={isPending} className="w-full justify-center">
-                {isPending
-                  ? 'Salvando…'
-                  : isEditing
-                  ? 'Salvar Alterações'
-                  : 'Cadastrar Ocorrência'}
+                {isPending ? 'Salvando…' : isEditing ? 'Salvar Alterações' : 'Cadastrar Ocorrência'}
               </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => navigate(-1)}
-                className="w-full justify-center"
-              >
+              <Button type="button" variant="secondary" onClick={() => navigate(-1)} className="w-full justify-center">
                 Cancelar
               </Button>
             </div>

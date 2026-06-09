@@ -150,7 +150,7 @@ export function OcorrenciaDetailPage() {
                 <h2 className="text-lg font-semibold text-slate-100">
                   {ocorrencia.tipoDesastre.nome} — {ocorrencia.regiao.nome}
                 </h2>
-                <span className="text-sm text-slate-500">{ocorrencia.regiao.estado}</span>
+                <span className="text-sm text-slate-500">{ocorrencia.regiao.pais}</span>
                 <StatusBadge status={ocorrencia.status} />
               </div>
               <p className="mt-2 text-sm text-slate-400">{ocorrencia.descricao}</p>
@@ -208,7 +208,7 @@ export function OcorrenciaDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Row label="Tipo de Desastre" value={ocorrencia.tipoDesastre.nome} />
-            <Row label="Região" value={`${ocorrencia.regiao.nome} (${ocorrencia.regiao.estado})`} />
+            <Row label="Região" value={`${ocorrencia.regiao.nome} (${ocorrencia.regiao.pais})`} />
             <Row label="Data de Início" value={formatarData(ocorrencia.dataInicio)} />
             {ocorrencia.dataFim && (
               <Row label="Data de Encerramento" value={formatarData(ocorrencia.dataFim)} />

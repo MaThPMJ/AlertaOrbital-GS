@@ -106,7 +106,7 @@ export function DashboardPage() {
                     <span className="truncate text-sm font-medium text-slate-200">
                       {o.tipoDesastre.nome} — {o.regiao.nome}
                     </span>
-                    <span className="shrink-0 text-xs text-slate-500">{o.regiao.estado}</span>
+                    <span className="shrink-0 text-xs text-slate-500">{o.regiao.pais}</span>
                   </div>
                   <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{o.descricao}</p>
                 </div>

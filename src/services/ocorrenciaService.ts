@@ -29,7 +29,7 @@ function aplicarFiltros(lista: Ocorrencia[], filtros?: OcorrenciaFiltros): Ocorr
         o.descricao.toLowerCase().includes(termo) ||
         o.tipoDesastre.nome.toLowerCase().includes(termo) ||
         o.regiao.nome.toLowerCase().includes(termo) ||
-        o.regiao.estado.toLowerCase().includes(termo),
+        o.regiao.cidade.toLowerCase().includes(termo),
     );
   }
   return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
@@ -59,7 +59,7 @@ export async function listarOcorrencias(filtros?: OcorrenciaFiltros): Promise<Oc
           o.descricao.toLowerCase().includes(termo) ||
           o.tipoDesastre.nome.toLowerCase().includes(termo) ||
           o.regiao.nome.toLowerCase().includes(termo) ||
-          o.regiao.estado.toLowerCase().includes(termo),
+          o.regiao.cidade.toLowerCase().includes(termo),
       );
     }
     return resultado.sort((a, b) => new Date(b.dataInicio).getTime() - new Date(a.dataInicio).getTime());
@@ -95,10 +95,8 @@ export async function cadastrarOcorrencia(dados: OcorrenciaFormData): Promise<Oc
     status: 'Ativo',
     idRegiao: dados.regiaoId,
     idTipo: dados.tipoDesastreId,
-    nomeRegiao: regiao.nome,
-    estadoRegiao: regiao.estado,
+    cidadeRegiao: regiao.nome,
     nomeTipo: tipo.nome,
-    nivelRisco: '',
   };
 
   const dto = await apiFetch<OcorrenciaDTO>('/ocorrencias', {
@@ -134,10 +132,8 @@ export async function editarOcorrencia(
     status: statusAtual,
     idRegiao: dados.regiaoId,
     idTipo: dados.tipoDesastreId,
-    nomeRegiao: regiao.nome,
-    estadoRegiao: regiao.estado,
+    cidadeRegiao: regiao.nome,
     nomeTipo: tipo.nome,
-    nivelRisco: '',
   };
 
   const dto = await apiFetch<OcorrenciaDTO>(`/ocorrencias/${id}`, {

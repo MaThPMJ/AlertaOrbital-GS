@@ -8,16 +8,13 @@ export interface OcorrenciaDTO {
   status: string;
   idRegiao: number;
   idTipo: number;
-  nomeRegiao: string;
-  estadoRegiao: string;
+  cidadeRegiao: string;
   nomeTipo: string;
-  nivelRisco: string;
 }
 
 export interface RegiaoDTO {
   idRegiao: number;
-  nome: string;
-  estado: string;
+  cidade: string;
   pais: string;
 }
 
@@ -62,10 +59,8 @@ export interface CriarOcorrenciaPayload {
   status: string;
   idRegiao: number;
   idTipo: number;
-  nomeRegiao: string;
-  estadoRegiao: string;
+  cidadeRegiao: string;
   nomeTipo: string;
-  nivelRisco: string;
 }
 
 export interface AtualizarStatusPayload {
@@ -85,7 +80,6 @@ export interface CriarTipoDesastrePayload {
 }
 
 export interface CriarRegiaoPayload {
-  nome: string;
-  estado: string;
+  cidade: string;
   pais: string;
 }

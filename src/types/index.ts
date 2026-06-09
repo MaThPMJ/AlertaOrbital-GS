@@ -8,7 +8,7 @@ export type AlertaSeveridade = 'Critico' | 'Alto' | 'Medio' | 'Baixo';
 export interface Regiao {
   id: number;
   nome: string;
-  estado: string;
+  pais: string;
   latitude: number;
   longitude: number;
 }

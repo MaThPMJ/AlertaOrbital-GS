@@ -9,14 +9,14 @@ import type {
 } from '../types';
 
 export const mockRegioes: Regiao[] = [
-  { id: 1, nome: 'Vale do Taquari', estado: 'RS', latitude: -29.15, longitude: -52.0 },
-  { id: 2, nome: 'Baixo Amazonas', estado: 'AM', latitude: -3.1, longitude: -60.0 },
-  { id: 3, nome: 'Sertão Central', estado: 'CE', latitude: -6.8, longitude: -39.5 },
-  { id: 4, nome: 'Serra dos Órgãos', estado: 'RJ', latitude: -22.45, longitude: -42.98 },
-  { id: 5, nome: 'Pantanal Norte', estado: 'MT', latitude: -15.5, longitude: -56.1 },
-  { id: 6, nome: 'Alto Solimões', estado: 'AM', latitude: -3.5, longitude: -68.5 },
-  { id: 7, nome: 'Litoral Norte', estado: 'SP', latitude: -23.3, longitude: -44.8 },
-  { id: 8, nome: 'Planalto Sul', estado: 'SC', latitude: -27.6, longitude: -50.5 },
+  { id: 1, nome: 'Vale do Taquari', pais: 'Brasil', latitude: -29.15, longitude: -52.0 },
+  { id: 2, nome: 'Baixo Amazonas', pais: 'Brasil', latitude: -3.1, longitude: -60.0 },
+  { id: 3, nome: 'Sertão Central', pais: 'Brasil', latitude: -6.8, longitude: -39.5 },
+  { id: 4, nome: 'Serra dos Órgãos', pais: 'Brasil', latitude: -22.45, longitude: -42.98 },
+  { id: 5, nome: 'Pantanal Norte', pais: 'Brasil', latitude: -15.5, longitude: -56.1 },
+  { id: 6, nome: 'Alto Solimões', pais: 'Brasil', latitude: -3.5, longitude: -68.5 },
+  { id: 7, nome: 'Litoral Norte', pais: 'Brasil', latitude: -23.3, longitude: -44.8 },
+  { id: 8, nome: 'Planalto Sul', pais: 'Brasil', latitude: -27.6, longitude: -50.5 },
 ];
 
 export const mockTiposDesastre: TipoDesastre[] = [
