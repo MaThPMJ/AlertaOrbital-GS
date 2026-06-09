@@ -10,6 +10,11 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   {
+    pergunta: 'Como criar uma ocorrência a partir de uma detecção?',
+    resposta:
+      'Na aba Detecções ao Vivo, clique em "+ Criar Ocorrência" no cartão do evento. O sistema preenche automaticamente a descrição, data e os satélites responsáveis pela detecção. Basta escolher a região, confirmar os dados e salvar.',
+  },
+  {
     pergunta: 'O que é a aba de Detecções ao Vivo?',
     resposta:
       'A aba Detecções ao Vivo exibe eventos naturais detectados em tempo real por três fontes: NASA EONET (eventos de grande escala), USGS (sismos acima de magnitude 3.0) e GDACS da ONU (enchentes, incêndios e terremotos com impacto humanitário). Todos os eventos são filtrados para a América do Sul.',
